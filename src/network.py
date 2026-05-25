@@ -6,6 +6,7 @@ MNIST 분류용 신경망 조립 모듈.
 """
 
 from collections import OrderedDict
+from collections import defaultdict
 
 import numpy as np
 
@@ -33,6 +34,8 @@ class NeuralNetwork:
         # 권장 구조: 784 -> 512 -> 256 -> 10
         # self.layers는 OrderedDict로 만들고, self.grads는 params와 같은 key를 갖게 합니다.
         
+        self.softmax = Softmax()
+
         # params 설정
         self.params = {}
         self.params['W1'] = np.random.randn(784, 512) * np.sqrt(784/2) 
@@ -43,35 +46,35 @@ class NeuralNetwork:
         self.params['b3'] = np.zeros(10)
 
         # grads 설정
-        self.grads = {}
-        
+        self.grads = defaultdict(dict)
+
         # 레이어 모음
         self.layers = OrderedDict()
-    
+
         # 첫번째 계층 설정
-        self.layers['L1'] = []
-        self.layers['L1'].append(Affine(self.params['W1'], self.params['b1']))
+        self.layers['L1'] = OrderedDict()
+        self.layers['L1']['affine'] = Affine(self.params['W1'], self.params['b1'])
         if use_batchnorm:
-            self.layers['L1'].append(BatchNorm(0, 1))
-        self.layers['L1'].append(ReLU())
+            self.layers['L1']['batchnorm'] = BatchNorm(0, 1)
+        self.layers['L1']['activation'] = ReLU()
         if use_dropout:
-            self.layers['L1'].append(Dropout(dropout_ratio))
+            self.layers['L1']['dropout'] = Dropout(dropout_ratio)
         
         # 두번째 계층 설정
-        self.layers['L2'] = []
-        self.layers['L2'].append(Affine(self.params['W2'], self.params['b2']))
+        self.layers['L2'] = OrderedDict()
+        self.layers['L2']['affine'] = Affine(self.params['W2'], self.params['b2'])
         if use_batchnorm:
-            self.layers['L2'].append(BatchNorm(0, 1))
-        self.layers['L2'].append(ReLU())
+            self.layers['L2']['batchnorm'] = BatchNorm(0, 1)
+        self.layers['L2']['activation'] = ReLU()
         if use_dropout:
-            self.layers['L2'].append(Dropout(dropout_ratio))
+            self.layers['L2']['dropout'] = Dropout(dropout_ratio)
 
         # 세번째 계층 설정
-        self.layers['L3'] = []
-        self.layers['L3'].append(Affine(self.params['W3'], self.params['b3']))
+        self.layers['L3'] = OrderedDict()
+        self.layers['L3']['affine'] = Affine(self.params['W3'], self.params['b3'])
         if use_batchnorm:
-            self.layers['L3'].append(BatchNorm(0, 1))
-        self.layers['L3'].append(Softmax())
+            self.layers['L3']['batchnorm'] = BatchNorm(0, 1)
+        self.layers['L3']['activation'] = Softmax()
 
     def forward(self, x, train=True):
         """
@@ -84,7 +87,7 @@ class NeuralNetwork:
         """
         # TODO: self.layers를 순서대로 통과시키고 마지막에 Softmax를 적용하세요.
         for layers in self.layers.values():
-            for layer in layers:
+            for layer in layers.values():
                 x = layer.forward(x)
         
         if train:
@@ -100,7 +103,18 @@ class NeuralNetwork:
             dout: Softmax+CrossEntropy를 합친 출력층 gradient
         """
         # TODO: layer를 역순으로 통과시키고 Affine/BatchNorm의 gradient를 self.grads에 모으세요.
-        raise NotImplementedError("NeuralNetwork.backward를 구현하세요.")
+        for layers in reversed(self.layers.values()):
+            for layer in reversed(layers.values()):
+                dout = layer.backward(dout)
+    
+        self.grads['W1'] = self.layers['L1']['affine'].dW
+        self.grads['b1'] = self.layers['L1']['affine'].db
+
+        self.grads['W2'] = self.layers['L2']['affine'].dW
+        self.grads['b2'] = self.layers['L2']['affine'].db
+
+        self.grads['W3'] = self.layers['L3']['affine'].dW
+        self.grads['b3'] = self.layers['L3']['affine'].db
 
     def loss(self, x, y):
         """현재 모델의 예측 확률을 만든 뒤 cross entropy loss를 반환합니다."""
