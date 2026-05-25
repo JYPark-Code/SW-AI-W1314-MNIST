@@ -3,9 +3,6 @@
 
 import numpy as np
 
-from activations import Softmax
-
-
 def cross_entropy_loss(y_pred, y_true):
     """
     Cross Entropy Error (배치 평균).
