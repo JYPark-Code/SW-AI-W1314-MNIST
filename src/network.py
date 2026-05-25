@@ -32,7 +32,46 @@ class NeuralNetwork:
         # TODO: params dict를 만들고 Affine/BatchNorm/ReLU/Dropout layer를 순서대로 구성하세요.
         # 권장 구조: 784 -> 512 -> 256 -> 10
         # self.layers는 OrderedDict로 만들고, self.grads는 params와 같은 key를 갖게 합니다.
-        raise NotImplementedError("NeuralNetwork.__init__을 구현하세요.")
+        
+        # params 설정
+        self.params = {}
+        self.params['W1'] = np.random.randn(784, 512) * np.sqrt(784/2) 
+        self.params['b1'] = np.zeros(512)
+        self.params['W2'] = np.random.randn(512, 256) * np.sqrt(512/2)
+        self.params['b2'] = np.zeros(256)
+        self.params['W3'] = np.random.randn(256, 10) * np.sqrt(256/2)
+        self.params['b3'] = np.zeros(10)
+
+        # grads 설정
+        self.grads = {}
+        
+        # 레이어 모음
+        self.layers = OrderedDict()
+    
+        # 첫번째 계층 설정
+        self.layers['L1'] = []
+        self.layers['L1'].append(Affine(self.params['W1'], self.params['b1']))
+        if use_batchnorm:
+            self.layers['L1'].append(BatchNorm(0, 1))
+        self.layers['L1'].append(ReLU())
+        if use_dropout:
+            self.layers['L1'].append(Dropout(dropout_ratio))
+        
+        # 두번째 계층 설정
+        self.layers['L2'] = []
+        self.layers['L2'].append(Affine(self.params['W2'], self.params['b2']))
+        if use_batchnorm:
+            self.layers['L2'].append(BatchNorm(0, 1))
+        self.layers['L2'].append(ReLU())
+        if use_dropout:
+            self.layers['L2'].append(Dropout(dropout_ratio))
+
+        # 세번째 계층 설정
+        self.layers['L3'] = []
+        self.layers['L3'].append(Affine(self.params['W3'], self.params['b3']))
+        if use_batchnorm:
+            self.layers['L3'].append(BatchNorm(0, 1))
+        self.layers['L3'].append(Softmax())
 
     def forward(self, x, train=True):
         """
@@ -44,7 +83,14 @@ class NeuralNetwork:
             (batch_size, 10) 각 숫자 클래스의 확률
         """
         # TODO: self.layers를 순서대로 통과시키고 마지막에 Softmax를 적용하세요.
-        raise NotImplementedError("NeuralNetwork.forward를 구현하세요.")
+        for layers in self.layers.values():
+            for layer in layers:
+                x = layer.forward(x)
+        
+        if train:
+            return self.softmax.forward(x)
+        else:
+            return x
 
     def backward(self, dout):
         """

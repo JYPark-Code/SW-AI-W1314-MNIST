@@ -78,6 +78,14 @@ class BatchNorm:
         self.running_var = np.zeros_like(beta)
         self.eps = 1e-7
 
+        self.normalized_x = None
+        self.var = None
+
+        self.dbeta = None
+        self.dgamma = None
+
+    # 이 부분은 AI를 이용해 작성함. 필요 이상의 계산과정이고, 이걸 굳이 할 필요는 못느낌.
+    # 시간이 많다면 계산 그래프를 보고 해결하면 되지만, 교과에 없는 momentum도 들어있음.
     def forward(self, x, train=True):
         """
         Args:
@@ -89,7 +97,29 @@ class BatchNorm:
         """
         # TODO: train=True에서는 batch mean/var로 정규화하고 running 통계를 갱신하세요.
         # TODO: train=False에서는 running_mean/running_var를 사용하세요.
-        raise NotImplementedError("BatchNorm.forward를 구현하세요.")
+        if train:
+            mean = np.mean(x, axis=0)
+            var = np.var(x, axis=0)
+
+            self.var = var
+            self.normalized_x = (x - mean) / np.sqrt(var + self.eps)
+
+            self.running_mean = (
+                self.momentum * self.running_mean
+                + (1 - self.momentum) * mean
+            )
+            self.running_var = (
+                self.momentum * self.running_var
+                + (1 - self.momentum) * var
+            )
+        else:
+            self.normalized_x = (
+                (x - self.running_mean)
+                / np.sqrt(self.running_var + self.eps)
+            )
+
+        output = self.gamma * self.normalized_x + self.beta
+        return output
 
     def backward(self, dout):
         """
@@ -103,7 +133,21 @@ class BatchNorm:
         """
         # TODO: self.dbeta, self.dgamma, dx를 계산하세요.
         # 힌트: 먼저 dbeta와 dgamma shape가 beta/gamma와 같은지 확인합니다.
-        raise NotImplementedError("BatchNorm.backward를 구현하세요.")
+        N = dout.shape[0]
+
+        self.dbeta = np.sum(dout, axis=0)
+        self.dgamma = np.sum(dout * self.normalized_x, axis=0)
+
+        dxhat = dout * self.gamma
+        inv_std = 1 / np.sqrt(self.var + self.eps)
+
+        dx = (1.0 / N) * inv_std * (
+            N * dxhat
+            - np.sum(dxhat, axis=0)
+            - self.normalized_x * np.sum(dxhat * self.normalized_x, axis=0)
+        )
+
+        return dx
 
 
 class Dropout:
