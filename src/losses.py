@@ -19,4 +19,4 @@ def cross_entropy_loss(y_pred, y_true):
 
     y = np.clip(y_pred, 1e-7, y_pred.max)
     batch_size = y_pred.shape[0]
-    return -np.sum(y_true[] * np.log(y)) / batch_size
+    return -np.sum(y_true * np.log(y)) / batch_size
