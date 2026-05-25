@@ -19,7 +19,7 @@ class SGD:
         """params dict의 모든 파라미터를 제자리(in-place)에서 갱신합니다."""
         # TODO: params[key]를 gradient 반대 방향으로 업데이트하세요.
         for key in params:
-            params[key] -= lr * grads[key]
+            params[key] -= self.lr * grads[key]
 
 class Adam:
     """

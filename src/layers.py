@@ -34,7 +34,7 @@ class Affine:
         """
         # TODO: backward에서 사용할 입력 x를 저장하고 x @ W + b를 반환하세요.
         self.x = x # backward(self, dout)에는 x가 인자로 안 들어오기 때문에, 저장해야 함
-        return np.dot(x, W) + b
+        return np.dot(self.x, self.W) + self.b
 
     def backward(self, dout):
         """

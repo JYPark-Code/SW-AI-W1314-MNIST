@@ -17,6 +17,8 @@ class ReLU:
     은닉층에서 음수 값은 0으로 막고, 양수 값은 그대로 통과시킵니다.
     forward에서 만든 mask는 backward 때 "어느 위치로 gradient를 흘릴지" 결정하는 데 사용됩니다.
     """
+    def __init__(self):
+        self.mask = None
 
     def forward(self, x):
         """
@@ -27,8 +29,8 @@ class ReLU:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
         # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
-        mask = x > 0
-        out = x * mask
+        self.mask = x > 0
+        out = x * self.mask
         
         return out
 
@@ -41,7 +43,10 @@ class ReLU:
             ReLU 입력 x에 대한 gradient. forward 때 x <= 0이었던 위치는 0입니다.
         """
         # TODO: forward에서 저장한 self.mask를 이용해 gradient가 흐를 위치만 남기세요.
-        raise NotImplementedError("ReLU.backward를 구현하세요.")
+        dout[~self.mask] = 0
+        dx = dout
+
+        return dx
 
 
 class Softmax:
