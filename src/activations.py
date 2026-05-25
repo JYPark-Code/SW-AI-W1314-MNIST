@@ -27,7 +27,10 @@ class ReLU:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
         # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
-        raise NotImplementedError("ReLU.forward를 구현하세요.")
+        if (x > 0):
+            return x
+        else:
+            return 0
 
     def backward(self, dout):
         """
@@ -54,12 +57,23 @@ class Softmax:
         Args:
             x: (batch_size, num_classes) 로짓
 
-        Returns:
+        Returns:    
             (batch_size, num_classes) 확률. 각 행의 합은 1입니다.
         """
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
-        raise NotImplementedError("Softmax.forward를 구현하세요.")
+        
+        # 각 행별 softmax를 구해야 함
+        rows = x.shape[0] #행 수
+
+        for i in range(rows):
+            max_value = np.max(x[i])
+            
+            exp_a = np.exp(x[i] - max_value)
+            sum_exp_a = np.sum(exp_a)
+            x[i] = exp_a / sum_exp_a
+        
+        return x
 
     def backward(self, dout):
         """
