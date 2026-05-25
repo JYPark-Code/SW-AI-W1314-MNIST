@@ -49,8 +49,11 @@ class Affine:
         """
         # TODO: self.dW, self.db, dx를 계산하세요.
         # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T
-        raise NotImplementedError("Affine.backward를 구현하세요.")
+        dx = np.dot(dout, self.W.T) # .T는 행렬의 전치
+        self.dW = np.dot(self.x.T, dout)
+        self.db = np.sum(dout, axis = 0)
 
+        return dx
 
 class BatchNorm:
     """
