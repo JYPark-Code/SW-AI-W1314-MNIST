@@ -34,7 +34,13 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
 
             loss = model.loss(x_batch, y_batch)
             loss_total += loss
-            model.backward(loss)
+
+            # 배치를 살리면서 gradient를 따로 만들어줘야한다.
+            pred = model.forward(x_batch)
+            pred[np.arange(pred.shape[0]), y_batch] -= 1
+            gradient = pred / pred.shape[0]
+            
+            model.backward(gradient)
             optimizer.update(model.params, model.grads)
 
         # 평균 손실 계산

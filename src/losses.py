@@ -14,4 +14,5 @@ def cross_entropy_loss(y_pred, y_true):
     y_selected_pred = y_pred[np.arange(y_pred.shape[0]), y_true]
     loss_array = (-1) * np.log(np.clip(y_selected_pred, 1e-5, 1))
     loss = np.average(loss_array)
+    
     return loss
