@@ -23,14 +23,14 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
     loss_history = []
     
     for epoch in range(epochs):
-        # np.random.shuffle(x_train)
-        
+        indices = np.random.permutation(x_train.shape[0])
         loss_total = 0
 
         # batch 뽑기
         for start_pos in range(0, x_train.shape[0], batch_size):
-            x_batch = x_train[start_pos:start_pos + batch_size]
-            y_batch = y_train[start_pos:start_pos + batch_size]
+            batch_indices = indices[start_pos:start_pos + batch_size]
+            x_batch = x_train[batch_indices]
+            y_batch = y_train[batch_indices]
 
             loss = model.loss(x_batch, y_batch)
             loss_total += loss
