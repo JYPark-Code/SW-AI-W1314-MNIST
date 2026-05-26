@@ -34,7 +34,7 @@ class Adam:
         self.lr = lr
         self.m, self.v = {}, {}
     
-        # 논문에 제시된 파라미터값
+        # 논문에 제시된 파라미터
         self.t = 0
         self.b1 = 0.9
         self.b2 = 0.999
@@ -52,4 +52,5 @@ class Adam:
             m_hat = self.m[key] / (1 - self.b1**self.t)
             v_hat = self.v[key] / (1 - self.b2**self.t)
 
-            params[key] = params[key] - self.lr*m_hat/(np.sqrt(v_hat) + self.eps)
+            # params[key] = params[key] - self.lr*m_hat/(np.sqrt(v_hat) + self.eps)
+            params[key] -= self.lr*m_hat/(np.sqrt(v_hat) + self.eps)
