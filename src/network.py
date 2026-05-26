@@ -55,7 +55,7 @@ class NeuralNetwork:
         self.layers['L1'] = OrderedDict()
         self.layers['L1']['affine'] = Affine(self.params['W1'], self.params['b1'])
         if use_batchnorm:
-            self.layers['L1']['batchnorm'] = BatchNorm(0, 1)
+            self.layers['L1']['batchnorm'] = BatchNorm(1, 0)
         self.layers['L1']['activation'] = ReLU()
         if use_dropout:
             self.layers['L1']['dropout'] = Dropout(dropout_ratio)
@@ -64,7 +64,7 @@ class NeuralNetwork:
         self.layers['L2'] = OrderedDict()
         self.layers['L2']['affine'] = Affine(self.params['W2'], self.params['b2'])
         if use_batchnorm:
-            self.layers['L2']['batchnorm'] = BatchNorm(0, 1)
+            self.layers['L2']['batchnorm'] = BatchNorm(1, 0)
         self.layers['L2']['activation'] = ReLU()
         if use_dropout:
             self.layers['L2']['dropout'] = Dropout(dropout_ratio)
@@ -73,7 +73,7 @@ class NeuralNetwork:
         self.layers['L3'] = OrderedDict()
         self.layers['L3']['affine'] = Affine(self.params['W3'], self.params['b3'])
         if use_batchnorm:
-            self.layers['L3']['batchnorm'] = BatchNorm(0, 1)
+            self.layers['L3']['batchnorm'] = BatchNorm(1, 0)
         self.layers['L3']['activation'] = Softmax()
 
     def forward(self, x, train=True):
