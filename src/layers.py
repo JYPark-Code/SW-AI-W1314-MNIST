@@ -83,9 +83,22 @@ class BatchNorm:
         Returns:
             정규화 후 gamma, beta가 적용된 배열
         """
-        # TODO: train=True에서는 batch mean/var로 정규화하고 running 통계를 갱신하세요.
-        # TODO: train=False에서는 running_mean/running_var를 사용하세요.
-        raise NotImplementedError("BatchNorm.forward를 구현하세요.")
+        if train:
+            mu = x.mean(axis=0)
+            xc = x - mu
+            var = (xc ** 2).mean(axis=0)
+            std = np.sqrt(var + self.eps)
+            xn = xc / std
+            self.batch_size = x.shape[0]
+            self.xc = xc
+            self.xn = xn
+            self.std = std
+            self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mu
+            self.running_var = self.momentum * self.running_var + (1 - self.momentum) * var
+        else:
+            xc = x - self.running_mean
+            xn = xc / np.sqrt(self.running_var + self.eps)
+        return self.gamma * xn + self.beta
 
     def backward(self, dout):
         """
@@ -97,9 +110,17 @@ class BatchNorm:
         Returns:
             dx: BatchNorm 입력 x에 대한 gradient
         """
-        # TODO: self.dbeta, self.dgamma, dx를 계산하세요.
-        # 힌트: 먼저 dbeta와 dgamma shape가 beta/gamma와 같은지 확인합니다.
-        raise NotImplementedError("BatchNorm.backward를 구현하세요.")
+        N = self.batch_size
+        self.dbeta = dout.sum(axis=0)
+        self.dgamma = (self.xn * dout).sum(axis=0)
+        dxn = self.gamma * dout
+        dxc = dxn / self.std
+        dstd = -((dxn * self.xc) / (self.std * self.std)).sum(axis=0)
+        dvar = 0.5 * dstd / self.std
+        dxc += (2.0 / N) * self.xc * dvar
+        dmu = dxc.sum(axis=0)
+        dx = dxc - dmu / N
+        return dx
 
 
 class Dropout:
