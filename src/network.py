@@ -102,6 +102,9 @@ class NeuralNetwork:
         Args:
             dout: Softmax+CrossEntropy를 합친 출력층 gradient
         """
+        if not dout.shape:
+            dout = dout.copy().reshape(1,)
+
         # TODO: layer를 역순으로 통과시키고 Affine/BatchNorm의 gradient를 self.grads에 모으세요.
         for layers in reversed(self.layers.values()):
             for layer in reversed(layers.values()):
