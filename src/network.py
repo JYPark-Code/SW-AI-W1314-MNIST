@@ -72,8 +72,6 @@ class NeuralNetwork:
         # 세번째 계층 설정
         self.layers['L3'] = OrderedDict()
         self.layers['L3']['affine'] = Affine(self.params['W3'], self.params['b3'])
-        if use_batchnorm:
-            self.layers['L3']['batchnorm'] = BatchNorm(1, 0)
         self.layers['L3']['activation'] = Softmax()
 
     def forward(self, x, train=True):
