@@ -37,5 +37,17 @@ class Adam:
 
     def update(self, params, grads):
         """Adam 공식에 따라 params dict의 모든 파라미터를 갱신합니다."""
-        # TODO: m, v 이동평균과 bias correction을 사용해 params를 업데이트하세요.
-        raise NotImplementedError("Adam.update를 구현하세요.")
+        if not self.m:
+            for key, val in params.items():
+                self.m[key] = np.zeros_like(val)
+                self.v[key] = np.zeros_like(val)
+
+        self.t += 1
+        beta1, beta2, eps = 0.9, 0.999, 1e-8
+
+        for key in params.keys():
+            self.m[key] = beta1 * self.m[key] + (1 - beta1) * grads[key]
+            self.v[key] = beta2 * self.v[key] + (1 - beta2) * (grads[key] ** 2)
+            m_hat = self.m[key] / (1 - beta1 ** self.t)
+            v_hat = self.v[key] / (1 - beta2 ** self.t)
+            params[key] -= self.lr * m_hat / (np.sqrt(v_hat) + eps)
