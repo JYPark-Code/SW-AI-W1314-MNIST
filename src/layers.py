@@ -32,8 +32,8 @@ class Affine:
         Returns:
             (batch_size, output_dim)
         """
-        # TODO: backward에서 사용할 입력 x를 저장하고 x @ W + b를 반환하세요.
-        raise NotImplementedError("Affine.forward를 구현하세요.")
+        self.x = x
+        return x @ self.W + self.b
 
     def backward(self, dout):
         """
@@ -46,9 +46,10 @@ class Affine:
         Side effects:
             self.dW, self.db에 optimizer가 사용할 gradient를 저장합니다.
         """
-        # TODO: self.dW, self.db, dx를 계산하세요.
-        # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T
-        raise NotImplementedError("Affine.backward를 구현하세요.")
+        self.dW = self.x.T @ dout
+        self.db = dout.sum(axis=0)
+        dx = dout @ self.W.T
+        return dx
 
 
 class BatchNorm:
