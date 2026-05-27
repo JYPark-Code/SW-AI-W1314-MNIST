@@ -22,13 +22,19 @@ class NeuralNetwork:
     가중치 초기화: He 또는 Xavier 중 선택.
     """
 
-    def __init__(self, use_batchnorm=True, use_dropout=True, dropout_ratio=0.5):
+    def __init__(self, use_batchnorm=True, use_dropout=True, dropout_ratio=0.5,
+                 hidden_sizes=(512, 256), init="he"):
         """
-        구조: 입력 784 -> [Affine -> (BatchNorm) -> ReLU -> (Dropout)] * 2 -> Affine(10) -> Softmax.
-        가중치는 He 초기화.
+        구조: 입력 784 -> [Affine -> (BatchNorm) -> ReLU -> (Dropout)] * N -> Affine(10) -> Softmax.
+
+        Args:
+            hidden_sizes: 은닉층 크기 튜플. (512, 256)이면 2개 은닉층(폭 512, 256).
+            init: 가중치 초기화 방식. "he"(ReLU 표준) 또는 "xavier"(Sigmoid/tanh 표준).
         """
-        # 입력층 + 은닉층(2개) + 출력층 크기. sizes[i] → sizes[i+1] 변환마다 Affine 한 개.
-        sizes = [784, 512, 256, 10]
+        if init not in ("he", "xavier"):
+            raise ValueError(f"init must be 'he' or 'xavier', got {init!r}")
+        # 입력층 + 은닉층(N개) + 출력층 크기. sizes[i] → sizes[i+1] 변환마다 Affine 한 개.
+        sizes = [784, *hidden_sizes, 10]
         # params: optimizer가 갱신할 모든 학습 파라미터를 모아둔 dict.
         self.params = {}
         # layers: forward 순서대로 보존되는 layer dict (역순 backward도 reversed로 가능).
@@ -39,9 +45,9 @@ class NeuralNetwork:
         for i in range(n_layers):
             in_size, out_size = sizes[i], sizes[i + 1]
 
-            # He 초기화: ReLU에서 음수의 절반이 0으로 막히는 손실을 보상하려고 분산을 2배(=sqrt(2/fan_in))로.
-            # Sigmoid/tanh라면 Xavier(sqrt(1/fan_in))가 표준.
-            W = np.random.randn(in_size, out_size) * np.sqrt(2.0 / in_size)
+            # He: 분산 2/fan_in (ReLU 표준). Xavier: 1/fan_in (Sigmoid/tanh 표준).
+            scale = np.sqrt(2.0 / in_size) if init == "he" else np.sqrt(1.0 / in_size)
+            W = np.random.randn(in_size, out_size) * scale
             b = np.zeros(out_size)
             self.params[f"W{i + 1}"] = W
             self.params[f"b{i + 1}"] = b
