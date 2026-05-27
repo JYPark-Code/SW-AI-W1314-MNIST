@@ -183,17 +183,23 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 ## 9. 구현하며 배운 핵심
 
-**in-place 갱신 (`-=`)**
-`=` 재할당하면 dict만 바뀌고 layer는 옛 배열을 계속 봐서 학습이 안 됨
+**① in-place 갱신 (`-=`)**
 
-**train / test 모드 분리**
-BatchNorm은 배치 통계 ↔ running 통계, Dropout은 mask ↔ scale — 잘못 쓰면 정확도 폭락
+layer와 optimizer는 같은 ndarray를 **참조 공유**한다. `params[key] -= lr * grads[key]`는 NumPy in-place 연산이라 그 배열을 직접 수정 → layer의 `self.W`도 같은 배열을 보고 있으니 자동으로 갱신된다. 반면 `params[key] = params[key] - lr * grads[key]`로 쓰면 새 배열이 만들어지고 **dict 슬롯만 새 배열을 가리키게** 되며, layer는 옛 배열을 계속 참조 → 학습이 끊긴다. (구현: [src/optimizers.py:21–24](src/optimizers.py))
 
-**Softmax + Cross Entropy 결합 미분**
-둘을 합쳐 미분하면 `(y_pred − y_true) / N`으로 깔끔하게 정리
+**② train / test 모드 분리**
 
-**Shape 매칭이 backward 디버깅 1차 관문**
-`dW.shape == W.shape`, `db.shape == b.shape`, `dγ.shape == γ.shape`
+BatchNorm과 Dropout은 학습 때와 추론 때 동작이 달라야 한다.
+- **BatchNorm**: train은 현재 배치의 평균/분산으로 정규화하며 running 통계를 함께 갱신, test는 누적된 running 통계 사용. test에서 실수로 train 모드를 쓰면 한 샘플짜리 배치 통계로 정규화돼 결과가 망가진다.
+- **Dropout**: train은 무작위 mask로 일부 뉴런을 0 처리하고 살아남은 뉴런을 `1/(1-p)`로 scale, test는 모든 뉴런을 그대로 통과. test에서 train 모드를 쓰면 매 호출마다 결과가 달라진다.
+
+**③ Softmax + Cross Entropy 결합 미분**
+
+두 layer의 chain rule을 따로 풀면 softmax 출력이 분모로 들어와 식이 복잡하고 수치적으로 불안정하다 (0에 가까운 확률로 나누면 explode). 두 단계를 한 묶음으로 묶어 미분하면 그 항들이 깨끗하게 약분돼 `(y_pred − y_true) / N` 한 줄로 정리된다 → 구현도 한 줄, 수치 안정성도 확보.
+
+**④ Shape 매칭이 backward 디버깅 1차 관문**
+
+backward에서 만든 gradient의 shape는 대응 파라미터와 정확히 일치해야 한다 (`dW.shape == W.shape`, `db.shape == b.shape`, `dγ.shape == γ.shape`). 어긋나면 NumPy broadcasting으로 잘못된 갱신이 **silently** 일어나, 에러는 안 나는데 결과만 이상해진다. backward를 짜고 가장 먼저 각 grad의 shape을 출력해 확인하는 것이 디버깅의 첫 단계였다.
 
 ---
 
