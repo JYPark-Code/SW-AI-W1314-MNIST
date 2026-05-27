@@ -134,7 +134,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 ## 7. 최종 정확도 — 세 처방의 종합 효과
 
-![Baseline vs v2 comparison](figures/baseline_vs_best.png)
+![Baseline vs v2 comparison](figures/baseline_vs_v2.png)
 
 | 지표              | Baseline   | 개선 모델 (v2) | 변화           |
 | --------------- | ---------- | ------------ | ------------ |
@@ -227,7 +227,7 @@ scripts/
 
 figures/
 ├── loss_curve.png
-└── baseline_vs_best.png
+└── baseline_vs_v2.png
 ```
 
 ```bash

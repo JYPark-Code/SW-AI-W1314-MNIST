@@ -2,7 +2,7 @@
 
 Outputs:
   figures/loss_curve.png         — Baseline vs v2 training-loss curve
-  figures/baseline_vs_best.png   — Final accuracy / overfitting-gap bars
+  figures/baseline_vs_v2.png     — Final accuracy / overfitting-gap bars
   figures/test_acc_curve.png     — Per-epoch test accuracy (saturation evidence)
 
 Run from project root:  python scripts/make_plots.py
@@ -115,9 +115,9 @@ ax.set_title("Overfitting Gap (smaller = better)")
 ax.grid(True, alpha=0.3, axis="y")
 
 fig.tight_layout()
-fig.savefig(FIG_DIR / "baseline_vs_best.png", dpi=140)
+fig.savefig(FIG_DIR / "baseline_vs_v2.png", dpi=140)
 plt.close(fig)
-print(f"[OK] figures/baseline_vs_best.png")
+print(f"[OK] figures/baseline_vs_v2.png")
 
 # ── 그림 3: Per-epoch test accuracy — saturation 증거 ──────────────────────
 fig, ax = plt.subplots(figsize=(9, 5))
