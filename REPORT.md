@@ -191,6 +191,7 @@ BatchNorm은 배치 통계 ↔ running 통계, Dropout은 mask ↔ scale — 잘
 
 **다음에 해 볼 것**
 - **Ablation 실험**: 처방을 1개씩만 적용한 3개 모델을 만들어 단독 효과 정량화
+  - 특히 검증할 가설: **"B+LD"(baseline 구조 + lr decay + Dropout 0.4, **width 2× 제외**)가 v2의 정확도를 학습 시간 약 1/6로 대체 가능한지** — width 증가의 단독 기여가 작아 보이는 관찰에서 도출한 가설
 - Xavier vs He 정량 비교 (이론적 결론과 실측 일치 확인)
 - Dropout 0.5 + 더 깊은 네트워크 (3–4 은닉층)
 - Data augmentation (작은 회전 / 시프트로 train/test gap 축소)
