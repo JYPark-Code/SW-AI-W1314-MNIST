@@ -10,7 +10,7 @@
 | -- | -- | --- |
 | SW-AI | 1조 | 박지용 · 김석제 · 서원규 · 김진호 |
 
-Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견한 **2가지 문제를 직접 해결하고 1가지 설계 페어링을 더한 개선 모델 (v2)**로 **Test 98.62%** 도달
+Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견한 **2가지 문제를 해결하고 1가지 설계 페어링을 더한 개선 모델 (v2)**로 **Test 98.62%** 도달
 
 ---
 
@@ -18,7 +18,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 **무엇을 하는가**
 - MNIST 10-class 분류를 PyTorch / TensorFlow 없이 **NumPy만으로**
-- Forward → Loss → Backward → Optimizer Update **전 사이클 직접 구현**
+- Forward → Loss → Backward → Optimizer Update **전 사이클 구현**
 
 **목표**
 - Test accuracy **≥ 95%** (권장 **≥ 97%**)
@@ -41,7 +41,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 | 신호 | 무엇을 보았나 | 어떤 문제로 해석했나 |
 | -- | -- | -- |
-| **① 후반 loss saturation** | epoch 13→14→15 loss: 0.0306 → 0.0270 → 0.0252. 더 이상 의미 있게 안 떨어짐 | **lr이 후반에는 너무 커서 minimum 주변을 진동** — fine-tuning이 안 됨 |
+| **① 후반 loss saturation (포화)** | epoch 13→14→15 loss: 0.0306 → 0.0270 → 0.0252. 더 이상 의미 있게 안 떨어짐 | **lr이 후반에는 너무 커서 minimum 주변을 진동** — fine-tuning이 안 됨 |
 | **② Train/Test 1.44%p 격차** | Train 99.85% vs Test 98.41% | **경미한 과적합** — train이 거의 100%까지 올라온 만큼 일반화 여력을 더 짤 수 있음 |
 
 > **참고.** Train 99.85% 자체는 정상치 — "문제 신호"가 아님.
@@ -57,7 +57,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 | Baseline 신호 | 변경 | 종류 | 핵심 근거 |
 | -- | -- | -- | -- |
-| ① 후반 loss saturation | **lr step decay** 1e-3 → 1e-4 (epoch 10/11 경계) | 해결 방법 | lr 클 땐 진동, 작을 땐 fine-tuning → 후반에 줄여 fine-tuning 단계 분리 (표준 전략) |
+| ① 후반 loss saturation (포화) | **lr step decay** 1e-3 → 1e-4 (epoch 10/11 경계) | 해결 방법 | lr 클 땐 진동, 작을 땐 fine-tuning → 후반에 줄여 fine-tuning 단계 분리 (표준 전략) |
 | ② Train/Test 1.44%p 격차 | **Dropout 0.3 → 0.4** | 해결 방법 | 정규화 강도 ↑ → 일반화 ↑ (격차 축소 기대) |
 | (— ②의 부작용 보완) | **은닉층 폭 2× (512/256 → 1024/512)** | **설계 페어링** | Dropout 강화로 줄어든 effective capacity 보상 |
 
@@ -69,6 +69,17 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 | **왜** (주된 이유) | Dropout 0.3 → 0.4로 forward마다 살아남는 뉴런 비율 ↓ → **effective capacity 감소**. 이를 폭으로 보상 — "정규화 강화 + capacity 증가"는 표준 페어링 |
 | **부수효과** | baseline의 train 99.85%가 진짜 capacity 상한인지 자연히 확인 (회고는 §8) |
 
+**수치로 확인 — 활성 뉴런 수**
+
+| 모델 | 폭 | Dropout | 살아남는 비율 | **활성 뉴런** |
+| -- | -- | -- | -- | -- |
+| Baseline 은닉 1 | 512 | 0.3 | 0.7 | **358** |
+| v2 은닉 1 | **1024** | **0.4** | 0.6 | **614** (≈ 1.7×) |
+| Baseline 은닉 2 | 256 | 0.3 | 0.7 | **179** |
+| v2 은닉 2 | **512** | **0.4** | 0.6 | **307** (≈ 1.7×) |
+
+→ Dropout이 더 강해졌는데도 **활성 뉴런 수는 약 70% 늘었음** — "보상 + 그 이상"으로 페어링 의도가 수치로 입증됩니다.
+
 ### Xavier 초기화 비교는 왜 제외했나
 
 | 비교 항목 | He 초기화 | Xavier 초기화 |
@@ -78,6 +89,27 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 | ReLU와의 적합도 | **정확히 맞음** | vanishing 가능성 ↑ (깊어질수록 신호 작아짐) |
 
 → 이론적으로 He 우위가 명백. "음성 결과 재확인 실험"보다 **위 2개 해결 방법 + 1 페어링의 효과 검증이 더 의미 있다고 판단**.
+
+### 코드로 보는 v2 — Dropout + lr step decay
+
+```python
+# Dropout 비율 (baseline 0.3 → v2 0.4)
+DROPOUT = 0.4
+
+# Phase 1 — epoch 1–10, lr=1e-3
+optimizer = Adam(lr=1e-3)
+train(model, optimizer, x_train, y_train,
+      epochs=10, batch_size=128,
+      eval_data=(x_test, y_test))
+
+# Phase 2 — epoch 11–15, lr step decay → 1e-4
+optimizer.lr = 1e-4   # 후반에 fine-tuning 단계로 진입
+train(model, optimizer, x_train, y_train,
+      epochs=5, batch_size=128,
+      eval_data=(x_test, y_test))
+```
+
+`scripts/run_experiment.py`의 핵심 부분입니다. **Dropout 0.4 설정**과 **lr 1e-3 → 1e-4 단계 전환**이 한눈에 들어옵니다.
 
 ---
 
@@ -135,7 +167,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 ![Training loss curve — Baseline vs v2](figures/loss_curve.png)
 
 - 두 모델 모두 **단조 감소**, 진동·재상승 없음
-- **epoch 10 → 11**에서 v2의 lr이 1e-3 → 1e-4로 전환되며 loss **0.0375 → 0.0257 (-31%)** 한 번 더 큰 폭 감소 → **해결 방법 ①(lr step decay)가 saturation을 풀어냈다는 직접 증거**
+- **epoch 10 → 11**에서 v2의 lr이 1e-3 → 1e-4로 전환되며 loss **0.0375 → 0.0257 (-31%)** 한 번 더 큰 폭 감소 → **해결 방법 ①(lr step decay)가 saturation(포화)을 풀어냈다는 증거**
 - 마지막 epoch loss: Baseline **0.0252** vs v2 **0.0154**
 
 ---
@@ -164,7 +196,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 세 변경(해결 방법 2 + 페어링 1)을 동시에 적용한 단일 실험이라 효과 분리(ablation)는 한계지만, 관찰 신호로부터 다음을 추정합니다.
 
 **해결 방법 ① lr step decay — 의도대로, 효과 가장 또렷 (사실상 단독 기여로 확인)**
-- 의도: 후반 saturation 해소
+- 의도: 후반 saturation (포화) 해소
 - 관찰: epoch 10→11에서 loss -31% 추가 감소. test 정확도도 98.41% → 98.59%로 +0.18%p 점프 (부록 E)
 - **부록 E의 결정적 증거**: v2 phase 1(lr=1e-3, 10 epoch) 종료 시점 정확도가 98.41%로 baseline 최종(98.41%)과 정확히 같음 → **v2의 +0.21%p 향상은 거의 전부 lr decay 단계에서 발생**
 - 결론: **세 변경 중 가장 큰 단일 기여 — "추정"이 아니라 데이터로 입증됨**
@@ -325,11 +357,11 @@ tests/test_training.py .                        [100%]
 
 ### 핵심 관찰 — "epoch 더 늘리면?" 질문에 대한 데이터 기반 답
 
-**① Baseline은 epoch 11 이후 명백한 saturation**
+**① Baseline은 epoch 11 이후 명백한 saturation (포화)**
 - epoch 11–15에서 98.27%~98.41% 사이를 진동만 함
 - epoch 11에서 98.39%로 사실상 peak에 도달, 이후 4 epoch을 더 돌려도 의미 있는 상승 없음
 
-**② v2도 lr decay 후 곧 saturation**
+**② v2도 lr decay 후 곧 saturation (포화)**
 - epoch 10→11에서 98.41%→**98.59%로 +0.18%p 점프** (lr 1e-3→1e-4 직후)
 - 그 이후 98.58%~98.62% 사이에서만 미세 진동 — 사실상 평탄
 
