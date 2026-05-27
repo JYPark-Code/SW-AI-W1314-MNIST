@@ -1,8 +1,9 @@
-"""Generate presentation figures (loss curve, baseline vs best comparison).
+"""Generate presentation figures.
 
 Outputs:
-  figures/loss_curve.png
-  figures/baseline_vs_best.png
+  figures/loss_curve.png         — Baseline vs v2 training-loss curve
+  figures/baseline_vs_best.png   — Final accuracy / overfitting-gap bars
+  figures/test_acc_curve.png     — Per-epoch test accuracy (saturation evidence)
 
 Run from project root:  python scripts/make_plots.py
 """
@@ -28,6 +29,17 @@ BASELINE_LOSS = [
     0.2884, 0.1281, 0.0951, 0.0763, 0.0670,
     0.0554, 0.0491, 0.0430, 0.0405, 0.0376,
     0.0351, 0.0307, 0.0306, 0.0270, 0.0252,
+]
+# Per-epoch test accuracy (recorded inside the train loop via eval_data).
+BASELINE_TEST_ACC = [
+    96.75, 97.27, 97.94, 97.97, 98.15,
+    98.18, 98.13, 98.18, 98.27, 98.36,
+    98.39, 98.31, 98.31, 98.27, 98.41,
+]
+BEST_TEST_ACC = [
+    96.84, 97.69, 97.88, 97.78, 98.20,
+    98.11, 98.25, 98.31, 98.25, 98.41,
+    98.59, 98.60, 98.61, 98.58, 98.62,
 ]
 LR_DECAY_EPOCH = 10  # epoch 10 이후 lr 1e-3 → 1e-4
 
@@ -106,3 +118,48 @@ fig.tight_layout()
 fig.savefig(FIG_DIR / "baseline_vs_best.png", dpi=140)
 plt.close(fig)
 print(f"[OK] figures/baseline_vs_best.png")
+
+# ── 그림 3: Per-epoch test accuracy — saturation 증거 ──────────────────────
+fig, ax = plt.subplots(figsize=(9, 5))
+
+ax.plot(epochs, BASELINE_TEST_ACC, marker="o", linewidth=2,
+        color="#888888", label="Baseline (lr=1e-3 fixed)")
+ax.plot(epochs, BEST_TEST_ACC, marker="s", linewidth=2,
+        color="#1f77b4", label="v2 (lr step decay)")
+
+ax.axvspan(LR_DECAY_EPOCH + 0.5, 15.5, alpha=0.10, color="#1f77b4",
+           label="lr = 1e-4 phase")
+
+# Baseline 후반 saturation 영역 강조 (epoch 11~15에서 98.27~98.41% 진동).
+ax.axhspan(98.27, 98.41, xmin=(11 - 0.5) / 15, xmax=1.0,
+           alpha=0.10, color="#888888")
+ax.annotate(
+    "Baseline saturated\n(98.27–98.41%, epoch 11–15)",
+    xy=(13, 98.30),
+    xytext=(8.5, 97.4),
+    fontsize=9,
+    color="#555555",
+    arrowprops=dict(arrowstyle="->", color="#888888", lw=1.0),
+)
+
+# v2 lr decay 직후 점프 + 그 이후 saturation 강조.
+ax.annotate(
+    "v2 jumps to 98.59% after lr decay,\nthen saturates at 98.58–98.62%",
+    xy=(13, 98.61),
+    xytext=(2.5, 98.85),
+    fontsize=9,
+    color="#1f77b4",
+    arrowprops=dict(arrowstyle="->", color="#1f77b4", lw=1.0),
+)
+
+ax.set_xlabel("Epoch", fontsize=12)
+ax.set_ylabel("Test accuracy (%)", fontsize=12)
+ax.set_title("Per-epoch Test Accuracy — Both Models Saturate by Epoch ~13", fontsize=13)
+ax.set_xticks(epochs)
+ax.set_ylim(96.5, 99.0)
+ax.grid(True, alpha=0.3)
+ax.legend(loc="lower right", fontsize=10)
+fig.tight_layout()
+fig.savefig(FIG_DIR / "test_acc_curve.png", dpi=140)
+plt.close(fig)
+print(f"[OK] figures/test_acc_curve.png")

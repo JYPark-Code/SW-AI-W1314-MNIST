@@ -43,19 +43,26 @@ optimizer = Adam(lr=LR_HIGH)
 n_params = sum(p.size for p in model.params.values())
 print(f"      params={n_params:,}")
 
-print(f"[3/5] Phase 1: {EPOCHS_HIGH} epochs @ lr={LR_HIGH}...")
+print(f"[3/5] Phase 1: {EPOCHS_HIGH} epochs @ lr={LR_HIGH} (with per-epoch test acc)...")
 start = time.time()
-history_high = train(model, optimizer, x_train, y_train,
-                     epochs=EPOCHS_HIGH, batch_size=BATCH)
+loss_high, acc_high = train(
+    model, optimizer, x_train, y_train,
+    epochs=EPOCHS_HIGH, batch_size=BATCH,
+    eval_data=(x_test, y_test),
+)
 
-print(f"[4/5] Phase 2: {EPOCHS_LOW} epochs @ lr={LR_LOW} (step decay)...")
+print(f"[4/5] Phase 2: {EPOCHS_LOW} epochs @ lr={LR_LOW} (step decay, with per-epoch test acc)...")
 optimizer.lr = LR_LOW
-history_low = train(model, optimizer, x_train, y_train,
-                    epochs=EPOCHS_LOW, batch_size=BATCH)
+loss_low, acc_low = train(
+    model, optimizer, x_train, y_train,
+    epochs=EPOCHS_LOW, batch_size=BATCH,
+    eval_data=(x_test, y_test),
+)
 elapsed = time.time() - start
-history = history_high + history_low
+loss_history = loss_high + loss_low
+test_acc_history = acc_high + acc_low
 
-print("[5/5] Evaluating...")
+print("[5/5] Final evaluation...")
 train_acc, _ = evaluate(model, x_train, y_train)
 test_acc, _ = evaluate(model, x_test, y_test)
 
@@ -63,10 +70,10 @@ total_epochs = EPOCHS_HIGH + EPOCHS_LOW
 print()
 print(f"Elapsed: {elapsed:.1f}s ({elapsed / total_epochs:.1f}s per epoch)")
 print(f"Params:  {n_params:,}")
-print("Loss curve:")
-for i, l in enumerate(history, 1):
+print("Per-epoch curves (loss / test acc):")
+for i, (l, a) in enumerate(zip(loss_history, test_acc_history), 1):
     tag = "(lr=1e-3)" if i <= EPOCHS_HIGH else "(lr=1e-4)"
-    print(f"  epoch {i:2d}: {l:.4f}  {tag}")
-print(f"Train accuracy: {train_acc:.2f}%")
-print(f"Test  accuracy: {test_acc:.2f}%")
+    print(f"  epoch {i:2d}: loss={l:.4f}  test_acc={a:.2f}%  {tag}")
+print(f"Final train accuracy: {train_acc:.2f}%")
+print(f"Final test  accuracy: {test_acc:.2f}%")
 print(f"Train/Test gap: {train_acc - test_acc:.2f}%p")

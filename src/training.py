@@ -7,7 +7,7 @@ import numpy as np
 from losses import cross_entropy_loss
 
 
-def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
+def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128, eval_data=None):
     """
     미니배치 학습 루프.
 
@@ -15,12 +15,19 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
     교육생은 이 함수에서 "예측값을 만들고, 손실을 계산하고, gradient로 파라미터를 바꾸는"
     전체 흐름을 확인할 수 있습니다.
 
+    Args:
+        eval_data: (x_eval, y_eval) 튜플. 주어지면 epoch마다 추론 모드 정확도를 측정해 함께 반환.
+            None이면 정확도 추적 안 함 (기본 동작 보존).
+
     Returns:
-        loss_history: epoch별 평균 손실 리스트
+        eval_data 없을 때: loss_history (epoch별 평균 손실 리스트)
+        eval_data 있을 때: (loss_history, eval_acc_history) 튜플
     """
     n_samples = x_train.shape[0]
     # epoch별 평균 loss를 모아두는 리스트 (시각화/디버깅에 사용).
     loss_history = []
+    # epoch별 eval 정확도(추론 모드)를 모아두는 리스트. eval_data 없으면 비어 있음.
+    eval_acc_history = []
 
     for epoch in range(epochs):
         # 매 epoch마다 데이터 순서를 새로 섞는다.
@@ -61,7 +68,18 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
         # 이번 epoch 전체 배치의 평균 loss를 기록.
         loss_history.append(float(np.mean(epoch_losses)))
 
-    return loss_history
+        # eval_data가 주어졌으면 추론 모드(predict)로 정확도 한 번 측정해 기록.
+        # 학습 중 어디서 test가 peak인지/saturate되는지 확인하는 용도.
+        if eval_data is not None:
+            x_eval, y_eval = eval_data
+            y_pred_eval = model.predict(x_eval)
+            acc = float(np.mean(np.argmax(y_pred_eval, axis=1) == y_eval) * 100)
+            eval_acc_history.append(acc)
+
+    # eval_data 미지정 시 기존 호출자(테스트 포함) 호환을 위해 loss_history만 반환.
+    if eval_data is None:
+        return loss_history
+    return loss_history, eval_acc_history
 
 
 def evaluate(model, x, y):
