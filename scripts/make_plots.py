@@ -38,7 +38,7 @@ epochs = np.arange(1, 16)
 ax.plot(epochs, BASELINE_LOSS, marker="o", linewidth=2,
         color="#888888", label="Baseline (lr=1e-3 fixed)")
 ax.plot(epochs, BEST_LOSS, marker="s", linewidth=2,
-        color="#1f77b4", label="Best (lr step decay)")
+        color="#1f77b4", label="v2 (lr step decay)")
 
 ax.axvspan(LR_DECAY_EPOCH + 0.5, 15.5, alpha=0.10, color="#1f77b4",
            label="lr = 1e-4 phase")
@@ -52,7 +52,7 @@ ax.annotate(
 
 ax.set_xlabel("Epoch", fontsize=12)
 ax.set_ylabel("Mean training loss", fontsize=12)
-ax.set_title("Training Loss Curve — Baseline vs Best", fontsize=13)
+ax.set_title("Training Loss Curve — Baseline vs v2", fontsize=13)
 ax.set_xticks(epochs)
 ax.grid(True, alpha=0.3)
 ax.legend(loc="upper right", fontsize=10)
@@ -61,7 +61,7 @@ fig.savefig(FIG_DIR / "loss_curve.png", dpi=140)
 plt.close(fig)
 print(f"[OK] figures/loss_curve.png")
 
-# ── 그림 2: Baseline vs Best 정확도 비교 ───────────────────────────────────
+# ── 그림 2: Baseline vs v2 정확도 비교 ───────────────────────────────────
 labels = ["Test acc", "Train acc", "Train/Test gap"]
 baseline_vals = [98.41, 99.85, 1.44]
 best_vals = [98.62, 99.95, 1.33]
@@ -74,7 +74,7 @@ width = 0.35
 ax.bar(x - width / 2, [baseline_vals[0], baseline_vals[1]], width,
        label="Baseline", color="#888888")
 ax.bar(x + width / 2, [best_vals[0], best_vals[1]], width,
-       label="Best", color="#1f77b4")
+       label="v2", color="#1f77b4")
 for i, (b, m) in enumerate(zip([baseline_vals[0], baseline_vals[1]],
                                 [best_vals[0], best_vals[1]])):
     ax.text(i - width / 2, b + 0.05, f"{b:.2f}%", ha="center", fontsize=9)
@@ -84,7 +84,7 @@ ax.set_xticks(x)
 ax.set_xticklabels(["Test accuracy", "Train accuracy"])
 ax.set_ylabel("Accuracy (%)")
 ax.set_ylim(98.0, 100.2)
-ax.set_title("Accuracy: Baseline vs Best")
+ax.set_title("Accuracy: Baseline vs v2")
 ax.legend(loc="lower right")
 ax.grid(True, alpha=0.3, axis="y")
 
@@ -96,7 +96,7 @@ ax.text(0, baseline_vals[2] + 0.02, f"{baseline_vals[2]:.2f}%p",
 ax.text(1, best_vals[2] + 0.02, f"{best_vals[2]:.2f}%p",
         ha="center", fontsize=9, fontweight="bold", color="#1f77b4")
 ax.set_xticks([0, 1])
-ax.set_xticklabels(["Baseline", "Best"])
+ax.set_xticklabels(["Baseline", "v2"])
 ax.set_ylabel("Train − Test (%p)")
 ax.set_ylim(0, 2.0)
 ax.set_title("Overfitting Gap (smaller = better)")
