@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """Softmax 단계 테스트."""
 
 import numpy as np

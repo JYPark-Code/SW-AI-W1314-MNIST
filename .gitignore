@@ -30,4 +30,8 @@ htmlcov/
 *.swp
 *~
 
+# IDE
+.idea/
+.vscode/
+
 docs/*
