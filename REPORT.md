@@ -290,7 +290,9 @@ tests/test_training.py .                        [100%]
 
 ## 부록 E · Per-epoch Test Accuracy 곡선 — Saturation 검증
 
-"epoch을 더 늘리면 더 좋아지지 않냐?"라는 질문에 데이터로 답하기 위해, **매 epoch이 끝날 때마다 test set 정확도를 측정**해 곡선을 만들었습니다. (구현: `train(..., eval_data=(x_test, y_test))`)
+"epoch을 더 늘리면 더 좋아지지 않냐?"라는 질문에 데이터로 답하기 위해, **매 epoch이 끝날 때마다 test set 정확도를 측정**해 곡선을 만들었습니다.
+
+**구현 메모.** 원래 `train()`은 epoch별 **loss**만 기록해 반환했습니다 (test_training.py가 검증하는 계약). 부록 E의 정확도 곡선을 그리려면 동일한 epoch 단위 x축에 **test accuracy**라는 y축을 하나 더 붙여야 했고, 이를 위해 `train()`에 `eval_data=(x_test, y_test)` 옵션을 추가했습니다. 인자가 주어지면 매 epoch 끝에 `model.predict()`로 추론 모드 정확도를 한 번 더 측정해 `eval_acc_history`로 함께 반환하고, 인자가 없으면 기존처럼 `loss_history`만 반환해 기존 호출자/테스트와의 호환을 유지합니다.
 
 ![Per-epoch test accuracy](figures/test_acc_curve.png)
 
