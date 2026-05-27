@@ -22,7 +22,7 @@
 
 **목표**
 - Test accuracy **≥ 95%** (권장 **≥ 97%**)
-- 참고: 『밑바닥부터 시작하는 딥러닝』 1~6장
+- 참고: 『밑바닥부터 시작하는 딥러닝』 1–6장
 
 **검증 기준**
 - 학습 정확도 + **단위 테스트 21개** (각 layer / optimizer forward·backward) 전부 통과
@@ -58,7 +58,7 @@
 | **총 파라미터 수** | **537,354**                                | **1,336,842** (≈ 2.5×)                              |
 
 ```
-입력 784  (28×28 픽셀, 0~1 정규화)
+입력 784  (28×28 픽셀, 0–1 정규화)
    │
    ▼
 [Affine] → BatchNorm → ReLU → Dropout    ← 은닉 블록 ×2 (폭과 dropout 비율이 두 모델 차이)
@@ -74,7 +74,7 @@
 | 항목                  | Baseline       | Best                                              |
 | ------------------- | -------------- | ------------------------------------------------- |
 | 옵티마이저               | Adam (β₁=0.9, β₂=0.999, ε=1e-8) | Adam (동일)                          |
-| **learning rate (lr)** | **1e-3 고정**  | **Step decay**: epoch 1~10 = 1e-3 → 11~15 = 1e-4 |
+| **learning rate (lr)** | **1e-3 고정**  | **Step decay**: epoch 1–10 = 1e-3 → 11–15 = 1e-4 |
 | Dropout 비율          | 0.3            | 0.4                                               |
 | epochs              | 15             | 15                                                |
 | batch size          | 128            | 128                                               |
@@ -154,11 +154,11 @@ BatchNorm은 배치 통계 ↔ running 통계, Dropout은 mask ↔ scale — 잘
 
 **현재 한계**
 - 학습 시간 trade-off: +0.21%p 정확도를 위해 학습 시간 **약 6배** (4분 → 23분)
-- CNN 없이 MLP로는 ~98.6%대가 사실상 상한
+- CNN 없이 MLP로는 약 98.6%대가 사실상 상한
 
 **다음에 해 볼 것**
 - Xavier vs He 정량 비교 (ReLU에서 실제 성능 저하 폭)
-- Dropout 0.5 + 더 깊은 네트워크 (3~4 은닉층)
+- Dropout 0.5 + 더 깊은 네트워크 (3–4 은닉층)
 - Data augmentation (작은 회전 / 시프트로 train/test gap 축소)
 - Cosine annealing 등 부드러운 lr 스케줄링과 step decay 비교
 
