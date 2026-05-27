@@ -109,7 +109,7 @@ train(model, optimizer, x_train, y_train,
       eval_data=(x_test, y_test))
 ```
 
-`scripts/run_experiment.py`의 핵심 부분입니다. **Dropout 0.4 설정**과 **lr 1e-3 → 1e-4 단계 전환**이 한눈에 들어옵니다.
+`scripts/run_experiment.py`의 핵심 부분입니다. 
 
 ---
 
