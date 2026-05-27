@@ -97,7 +97,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 [Affine 10] → Softmax → 클래스 확률
 ```
 
-은닉층 폭을 두 배로 키운 이유는 §3에서 설명한 해결 방법 ③ — capacity 가설 검증 + Dropout 강화 보상입니다.
+은닉층 폭을 두 배로 키운 이유는 §3에서 설명한 **설계 페어링** — Dropout 강화로 줄어든 effective capacity 보상 (+ baseline capacity 한계 가설의 부수 확인)입니다.
 
 ---
 
@@ -132,7 +132,7 @@ Baseline 모델로 **Test 98.41%**를 먼저 달성한 뒤, 회고에서 발견�
 
 ---
 
-## 7. 최종 정확도 — 세 해결 방법의 종합 효과
+## 7. 최종 정확도 — 세 변경의 종합 효과
 
 ![Baseline vs v2 comparison](figures/baseline_vs_v2.png)
 
